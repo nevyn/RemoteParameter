@@ -76,7 +76,12 @@
 	
 	id val = [values objectAtIndex:idx];
 	NSLog(@"%@ %@", [val class], val);
-	NSView *editor = [[[[PSEditors objectForKey:[val class]] alloc] initForIndex:idx onObject:self] autorelease];
+	
+	NSView *editor = nil;
+	for (Class valClass in PSEditors.allKeys)
+		if([val isKindOfClass:valClass])
+			editor = [[[[PSEditors objectForKey:valClass] alloc] initForIndex:idx onObject:self] autorelease];
+	
 	if(!editor) {
 		NSTextField *label = [[[NSTextField alloc] initWithFrame:NSZeroRect] autorelease];
 		[label setStringValue:[val description]];

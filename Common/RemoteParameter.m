@@ -11,9 +11,98 @@
 #import <SystemConfiguration/SystemConfiguration.h>
 #endif
 
+#pragma mark 
+#pragma mark Common
+#pragma mark -
 
 #define $dict(...) [NSDictionary dictionaryWithObjectsAndKeys:__VA_ARGS__, nil]
 #define $cmd(commandName, ...) $dict(commandName, CommandName, __VA_ARGS__)
+
+static NSMutableDictionary *_portableClasses;
+static NSMutableDictionary *portableClasses() {
+	if(!_portableClasses) _portableClasses = [NSMutableDictionary new];
+	return _portableClasses;
+}
+
+@interface PortableColor : NSObject
+	<NSCoding>
+{
+	CGFloat r, g, b, a;
+}
+-(id)initWithNativeValue:(id)nativeColor;
+-(id)nativeValue;
+@end
+@implementation PortableColor
++(void)load;
+{
+#if !TARGET_OS_IPHONE
+	[portableClasses() setObject:[PortableColor class] forKey:[NSColor class]];
+#else
+	[portableClasses() setObject:[PortableColor class] forKey:[UIColor class]];
+#endif
+}
+-(id)initWithNativeValue:(id)nativeColor;
+{
+#if !TARGET_OS_IPHONE
+	NSColor *color = nativeColor;
+	[color getRed:&r green:&g blue:&b alpha:&a];
+#else
+	UIColor *color = nativeColor;
+	CGColorRef cgcolor = color.CGColor;
+	if(CGColorGetNumberOfComponents(cgcolor) != 4) {
+		[self release];
+		return nil;
+	}
+	memcpy(&r, CGColorGetComponents(cgcolor), sizeof(float)*4);
+#endif
+	return self;
+}
+-(id)nativeValue;
+{
+#if !TARGET_OS_IPHONE
+	return [NSColor colorWithCalibratedRed:r green:g blue:b alpha:a];
+#else
+	return [UIColor colorWithRed:r green:g blue:b alpha:a];
+#endif
+}
+- (void)encodeWithCoder:(NSCoder *)coder;
+{
+	[coder encodeFloat:r forKey:@"r"];
+	[coder encodeFloat:g forKey:@"g"];
+	[coder encodeFloat:b forKey:@"b"];
+	[coder encodeFloat:a forKey:@"a"];
+}
+- (id)initWithCoder:(NSCoder *)decoder;
+{
+	r = [decoder decodeFloatForKey:@"r"];
+	g = [decoder decodeFloatForKey:@"g"];
+	b = [decoder decodeFloatForKey:@"b"];
+	a = [decoder decodeFloatForKey:@"a"];
+	return self;
+}
+@end
+
+id makePortable(id obj)
+{
+	for (Class nativeClass in portableClasses().allKeys)
+		if([obj isKindOfClass:nativeClass])
+			return [[[[portableClasses() objectForKey:nativeClass] alloc] initWithNativeValue:obj] autorelease];
+	
+	return obj;
+}
+
+id makeNative(id obj)
+{
+	if([obj respondsToSelector:@selector(nativeValue)])
+		return [obj nativeValue];
+	else
+		return obj;
+}
+
+
+#pragma mark 
+#pragma mark Server
+#pragma mark -
 
 static ParameterServer *singleton = nil;
 const int ParameterServerPort = 19437;
@@ -148,7 +237,7 @@ static NSString *UnavailableObject = @"UnavailableObject";
 		return;
 	}
 	
-	id currentValue = [change objectForKey:NSKeyValueChangeNewKey];
+	id currentValue = makePortable([change objectForKey:NSKeyValueChangeNewKey]);
 	
 	for (ParamServerWorker *worker in workers)
 		[worker sendReply:$cmd(AvailableObject, 
@@ -174,7 +263,7 @@ static NSString *UnavailableObject = @"UnavailableObject";
 	for (ParamVendedObject *vend in vendedObjects.allValues)
 		[worker sendReply:$cmd(AvailableObject,
 			vend.fullPath, ObjectKeypath,
-			[vend.object valueForKeyPath:vend.keypath], CurrentObjectValue
+			makePortable([vend.object valueForKeyPath:vend.keypath]), CurrentObjectValue
 		)];
 }
 -(void)workerDied:(ParamServerWorker*)worker;
@@ -189,13 +278,13 @@ static NSString *UnavailableObject = @"UnavailableObject";
 		NSString *fullPath = [worker.command objectForKey:SetObjectKeypath];
 		ParamVendedObject *vend = [vendedObjects objectForKey:fullPath];
 		
-		id incomingValue = [worker.command objectForKey:SetObjectValue];
+		id incomingValue = makeNative([worker.command objectForKey:SetObjectValue]);
 		
 		if(!vend || !incomingValue) return;
 		
 		[vend.object setValue:incomingValue forKeyPath:vend.keypath];
 		
-		id newValue = [vend.object valueForKeyPath:vend.keypath];
+		id newValue = makePortable([vend.object valueForKeyPath:vend.keypath]);
 		
 		for (ParamServerWorker *worker in workers)
 			[worker sendReply:$cmd(AvailableObject,
@@ -285,8 +374,9 @@ static NSString *UnavailableObject = @"UnavailableObject";
 
 
 
-
-
+#pragma mark
+#pragma mark Client
+#pragma mark -
 
 
 
@@ -374,7 +464,7 @@ static NSString *UnavailableObject = @"UnavailableObject";
 
 	if([command isEqual:AvailableObject]) {
 		NSString *fullPath = [cmd objectForKey:ObjectKeypath];
-		id value = [cmd objectForKey:CurrentObjectValue];
+		id value = makeNative([cmd objectForKey:CurrentObjectValue]);
 		
 		[delegate parameterClient:self receivedValue:value forKeyPath:fullPath];
 	} else if([command isEqual:UnavailableObject]) {
@@ -388,7 +478,7 @@ static NSString *UnavailableObject = @"UnavailableObject";
 {
 	[self sendReply:$cmd(SetValueOfObject,
 		path, SetObjectKeypath,
-		value, SetObjectValue
+		makePortable(value), SetObjectValue
 	)];
 }
 

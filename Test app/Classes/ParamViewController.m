@@ -13,7 +13,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 	
-	//[[ParameterServer server] shareKeyPath:@"backgroundColor" ofObject:colorView named:@"colorView"];
+	[[ParameterServer server] shareKeyPath:@"backgroundColor" ofObject:colorView named:@"colorView"];
 	[[ParameterServer server] shareKeyPath:@"text" ofObject:label named:@"label"];
 	[[ParameterServer server] shareKeyPath:@"value" ofObject:slider named:@"slider"];
 	

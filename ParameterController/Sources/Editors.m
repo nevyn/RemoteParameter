@@ -79,7 +79,6 @@ static NSMutableDictionary *editors() {
 +(void)load;
 {
 	[editors() setObject:self forKey:[NSString class]];
-	[editors() setObject:self forKey:NSClassFromString(@"NSCFString")];
 }
 -(void)sendValue:(NSTextField*)sender;
 {
@@ -119,7 +118,6 @@ static NSMutableDictionary *editors() {
 +(void)load;
 {
 	[editors() setObject:self forKey:[NSNumber class]];
-	[editors() setObject:self forKey:NSClassFromString(@"NSCFNumber")];
 }
 -(void)sendValue:(id)sender;
 {
@@ -189,3 +187,36 @@ static NSMutableDictionary *editors() {
 @end
 
 
+@interface PSColorEditor : PSEditor
+{
+	NSColorWell *well;
+}
+@end
+@implementation PSColorEditor
++(void)load;
+{
+	[editors() setObject:self forKey:[NSColor class]];
+}
+-(void)sendValue:(NSColorWell*)sender;
+{
+	[parent sendChange:[sender color] forKeyIndex:watchedIndex];
+}
+-(id)initForIndex:(NSInteger)idx onObject:(id)object;
+{
+	if(![super initForIndex:idx onObject:object]) return nil;
+	
+	well = [[[NSColorWell alloc] initWithFrame:(NSRect){.origin={0,0}, .size=self.frame.size}] autorelease];
+	[self addSubview:well];
+	[well setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+	[well setTarget:self];
+	[well setAction:@selector(sendValue:)];
+	
+	
+	return self;
+}
+-(void)valueChanged:(id)value;
+{
+	well.color = value;
+}
+
+@end
