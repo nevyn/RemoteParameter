@@ -353,15 +353,7 @@ static NSString *UnavailableObject = @"UnavailableObject";
 		
 		if(!vend || !incomingValue) return;
 		
-		[vend.object setValue:incomingValue forKeyPath:vend.keypath];
-		
-		id newValue = makePortable([vend.object valueForKeyPath:vend.keypath]);
-		
-		for (ParamServerWorker *worker in workers)
-			[worker sendReply:$cmd(AvailableObject,
-				vend.fullPath, ObjectKeypath,
-				newValue, CurrentObjectValue
-			)];
+		[vend.object setValue:incomingValue forKeyPath:vend.keypath];		
 	}
 }
 @end
