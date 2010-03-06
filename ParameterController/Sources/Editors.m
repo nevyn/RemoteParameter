@@ -7,6 +7,7 @@
 
 #import "Editors.h"
 #import "ClientController.h"
+#import <QuartzCore/QuartzCore.h>
 
 NSMutableDictionary *PSEditors;
 static NSMutableDictionary *editors() {
@@ -217,6 +218,181 @@ static NSMutableDictionary *editors() {
 -(void)valueChanged:(id)value;
 {
 	well.color = value;
+}
+
+@end
+
+
+@interface RectControl : NSControl
+{
+	CALayer *rect;
+	BOOL isMoving;
+	
+	CALayer *resizeLayer;
+	CALayer *tl, *tr, *bl, *br;
+}
+@end
+@implementation RectControl
++ (Class) cellClass { return [NSActionCell class]; }
+
+-(id)initWithFrame:(NSRect)r;
+{
+	if(![super initWithFrame:r]) return nil;
+	
+	[self setWantsLayer:YES];
+	self.layer = [CALayer layer];
+	self.layer.geometryFlipped = YES;
+	rect = [CALayer layer];
+	rect.frame = CGRectMake(0, 0, 20, 20);
+	[self.layer addSublayer:rect];
+	rect.backgroundColor = (CGColorRef)[(id)CGColorCreateGenericRGB(.4, .5, .4, .9) autorelease];
+	
+	tl = [CALayer layer]; tl.frame = CGRectMake(-5, -5, 10, 10);
+		[rect addSublayer:tl]; tl.autoresizingMask = kCALayerMaxXMargin|kCALayerMaxYMargin;
+	tr = [CALayer layer]; tr.frame = CGRectMake(15, -5, 10, 10);
+		[rect addSublayer:tr]; tr.autoresizingMask = kCALayerMinXMargin|kCALayerMaxYMargin;
+	bl = [CALayer layer]; bl.frame = CGRectMake(-5, 15, 10, 10);
+		[rect addSublayer:bl]; bl.autoresizingMask = kCALayerMaxXMargin|kCALayerMinYMargin;
+	br = [CALayer layer]; br.frame = CGRectMake(15, 15, 10, 10);
+		[rect addSublayer:br]; br.autoresizingMask = kCALayerMinXMargin|kCALayerMinYMargin;
+	tl.backgroundColor = tr.backgroundColor = bl.backgroundColor = br.backgroundColor = 
+		(CGColorRef)[(id)CGColorCreateGenericRGB(.4, .4, .6, .9) autorelease];
+	
+	return self;
+}
+-(NSRect)rect;
+{
+	return NSRectFromCGRect(rect.frame);
+}
+-(void)setRect:(NSRect)r;
+{
+	[CATransaction begin];
+	[CATransaction setDisableActions:YES];
+	rect.frame = NSRectToCGRect(r);
+	[CATransaction commit];
+}
+
+-(void)mouseDown:(NSEvent *)evt;
+{
+	NSPoint win = [evt locationInWindow];
+	CGPoint loc = NSPointToCGPoint([self convertPoint:win fromView:nil]);
+
+	isMoving = NO;
+	resizeLayer = nil;
+
+	// This must be a bug in hitTest...
+	loc.y = self.frame.size.height - loc.y;
+	CALayer *hit = [self.layer hitTest:loc];
+	if(hit != self.layer) {
+		loc.y = self.frame.size.height - loc.y;
+		
+		if(hit == rect)
+			isMoving = YES;
+		else {
+			resizeLayer = hit;
+			return;
+		}
+			
+		CGPoint rel = [self.layer convertPoint:loc toLayer:hit];
+		[CATransaction begin];
+		[CATransaction setDisableActions:YES];
+
+		hit.anchorPoint = (CGPoint){rel.x/hit.frame.size.width, rel.y/hit.frame.size.height};
+		hit.position = loc;
+		
+		[CATransaction commit];
+	}
+}
+-(void)mouseDragged:(NSEvent*)evt;
+{
+	
+	NSPoint win = [evt locationInWindow];
+	CGPoint loc = NSPointToCGPoint([self convertPoint:win fromView:nil]);
+	
+	BOOL somethingChanged = YES;
+	
+	[CATransaction begin];
+	[CATransaction setDisableActions:YES];
+	
+	if(isMoving)
+		rect.position = loc;
+	else if(resizeLayer) {
+		CGPoint oldLoc = resizeLayer.position;
+			oldLoc.x += rect.frame.origin.x; oldLoc.y += rect.frame.origin.y;
+			
+		CGSize diff = {loc.x - oldLoc.x, loc.y - oldLoc.y};
+
+		CGRect r = rect.frame;
+		if(resizeLayer == tl) {
+			r.origin = loc;
+			r.size = (CGSize){r.size.width - diff.width, r.size.height - diff.height};
+		} else if(resizeLayer == br) {
+			r.size = (CGSize){r.size.width + diff.width, r.size.height + diff.height};
+		} else if(resizeLayer == tr) {
+			r.size.width += diff.width;
+			r.size.height -= diff.height;
+			r.origin.y += diff.height;
+		} else if(resizeLayer == bl) {
+			r.size.width -= diff.width;
+			r.size.height += diff.height;
+			r.origin.x += diff.width;
+		}
+		
+		rect.frame = r;
+	} else
+			somethingChanged = NO;
+	
+	[CATransaction commit];
+	
+	if(somethingChanged)
+		[self sendAction:self.action to:self.target];
+}
+-(void)mouseUp:(NSEvent *)evt
+{
+
+}
+-(BOOL)isFlipped;
+{
+	return YES;
+}
+-(BOOL)acceptsFirstMouse:(NSEvent *)theEvent
+{
+	return YES;
+}
+@end
+
+
+
+@interface PSRectEditor : PSEditor
+{
+	RectControl *rect;
+}
+@end
+@implementation PSRectEditor
++(void)load;
+{
+	[editors() setObject:self forKey:NSClassFromString(@"NSConcreteValue")];
+}
+-(void)sendValue:(RectControl*)sender;
+{
+	[parent sendChange:[NSValue valueWithRect:[sender rect]] forKeyIndex:watchedIndex];
+}
+-(id)initForIndex:(NSInteger)idx onObject:(id)object;
+{
+	if(![super initForIndex:idx onObject:object]) return nil;
+	
+	rect = [[[RectControl alloc] initWithFrame:(NSRect){.origin={0,0}, .size=self.frame.size}] autorelease];
+	[self addSubview:rect];
+	[rect setAutoresizingMask:NSViewWidthSizable|NSViewHeightSizable];
+	[rect setTarget:self];
+	[rect setAction:@selector(sendValue:)];
+	
+	
+	return self;
+}
+-(void)valueChanged:(id)value;
+{
+	rect.rect = [value rectValue];
 }
 
 @end

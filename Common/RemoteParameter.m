@@ -82,6 +82,77 @@ static NSMutableDictionary *portableClasses() {
 }
 @end
 
+
+
+@interface PortableValue : NSObject
+	<NSCoding>
+{
+#if !TARGET_OS_IPHONE
+	NSRect r;
+#else
+	CGRect r;
+#endif
+}
+-(id)initWithNativeValue:(id)nativeValue;
+-(id)nativeValue;
+@end
+@implementation PortableValue
++(void)load;
+{
+	[portableClasses() setObject:[PortableValue class] forKey:[NSValue class]];
+}
+-(id)initWithNativeValue:(id)nativeValue;
+{
+#if !TARGET_OS_IPHONE
+	if(strcmp([nativeValue objCType],@encode(NSRect)) == NSOrderedSame) {
+		r = [nativeValue rectValue];
+	} else {
+		[self release];
+		return [nativeValue retain];
+	}
+
+#else
+	if(strcmp([nativeValue objCType],@encode(CGRect)) == NSOrderedSame) {
+		r = [nativeValue CGRectValue];
+	} else {
+		[self release];
+		return [nativeValue retain];
+	}
+
+#endif
+
+	return self;
+}
+-(id)nativeValue;
+{
+#if !TARGET_OS_IPHONE
+	return [NSValue valueWithRect:r];
+#else
+	return [NSValue valueWithCGRect:r];
+#endif
+}
+- (void)encodeWithCoder:(NSCoder *)coder;
+{
+	[coder encodeFloat:r.origin.x forKey:@"origin.x"];
+	[coder encodeFloat:r.origin.y forKey:@"origin.y"];
+	[coder encodeFloat:r.size.width forKey:@"size.width"];
+	[coder encodeFloat:r.size.height forKey:@"size.height"];
+}
+- (id)initWithCoder:(NSCoder *)decoder;
+{
+	r.origin.x = [decoder decodeFloatForKey:@"origin.x"];
+	r.origin.y = [decoder decodeFloatForKey:@"origin.y"];
+	r.size.width = [decoder decodeFloatForKey:@"size.width"];
+	r.size.height = [decoder decodeFloatForKey:@"size.height"];
+	return self;
+}
+@end
+
+
+
+
+
+
 id makePortable(id obj)
 {
 	for (Class nativeClass in portableClasses().allKeys)

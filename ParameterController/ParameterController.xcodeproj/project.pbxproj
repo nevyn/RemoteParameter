@@ -16,6 +16,7 @@
 		0528B56C11406ED90053FEC4 /* ParameterControllerAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0528B56411406ED90053FEC4 /* ParameterControllerAppDelegate.m */; };
 		0528B57211406EDD0053FEC4 /* AsyncSocket.m in Sources */ = {isa = PBXBuildFile; fileRef = 0528B56F11406EDD0053FEC4 /* AsyncSocket.m */; };
 		0528B57311406EDD0053FEC4 /* RemoteParameter.m in Sources */ = {isa = PBXBuildFile; fileRef = 0528B57111406EDD0053FEC4 /* RemoteParameter.m */; };
+		054C97671142F0D7004DA5B1 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 054C97661142F0D7004DA5B1 /* QuartzCore.framework */; };
 		059E49A3113E52BE0077F655 /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 059E49A2113E52BE0077F655 /* SystemConfiguration.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
 /* End PBXBuildFile section */
@@ -37,6 +38,7 @@
 		0528B56F11406EDD0053FEC4 /* AsyncSocket.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AsyncSocket.m; sourceTree = "<group>"; };
 		0528B57011406EDD0053FEC4 /* RemoteParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemoteParameter.h; sourceTree = "<group>"; };
 		0528B57111406EDD0053FEC4 /* RemoteParameter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RemoteParameter.m; sourceTree = "<group>"; };
+		054C97661142F0D7004DA5B1 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		059E49A2113E52BE0077F655 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		8D1107320486CEB800E47090 /* ParameterController.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ParameterController.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,6 +51,7 @@
 			files = (
 				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				059E49A3113E52BE0077F655 /* SystemConfiguration.framework in Frameworks */,
+				054C97671142F0D7004DA5B1 /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +121,7 @@
 			children = (
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				059E49A2113E52BE0077F655 /* SystemConfiguration.framework */,
+				054C97661142F0D7004DA5B1 /* QuartzCore.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
