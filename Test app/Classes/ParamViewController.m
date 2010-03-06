@@ -14,8 +14,11 @@
     [super viewDidLoad];
 	
 	[colorView shareKeyPath:@"backgroundColor" as:@"colorView"];
+	[colorView shareKeyPath:@"frame" as:@"colorView"];
+	[segmented shareKeyPath:@"selectedSegmentIndex" as:@"segment"];
 	[label shareKeyPath:@"text" as:@"label"];
 	[slider shareKeyPath:@"value" as:@"slider"];
+	[slider shareKeyPath:@"frame" as:@"slider"];
 	
 }
 

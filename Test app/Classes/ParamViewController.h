@@ -9,6 +9,7 @@
 
 @interface ParamViewController : UIViewController {
 	IBOutlet UIView *colorView;
+	IBOutlet UISegmentedControl *segmented;
 	IBOutlet UILabel *label;
 	IBOutlet UISlider *slider;
 }
