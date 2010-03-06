@@ -21,6 +21,12 @@ const extern int ParameterServerPort;
 -(void)stopSharingKeyPath:(NSString*)path ofObject:(id)object named:(NSString*)name;
 @end
 
+@interface NSObject (ParameterConvenience)
+-(void)shareKeyPath:(NSString*)path as:(NSString*)objectName;
+-(void)stopSharingKeyPath:(NSString*)path as:(NSString*)objectName;
+@end
+
+
 @class ParameterClient;
 @protocol ParameterClientDelegate
 -(void)parameterClient:(ParameterClient*)client receivedValue:(id)value forKeyPath:(NSString*)keyPath;

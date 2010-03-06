@@ -370,6 +370,18 @@ static NSString *UnavailableObject = @"UnavailableObject";
 
 
 
+@implementation NSObject (ParameterConvenience)
+-(void)shareKeyPath:(NSString*)path as:(NSString*)objectName;
+{
+	[[ParameterServer server] shareKeyPath:path ofObject:self named:objectName];
+}
+-(void)stopSharingKeyPath:(NSString*)path as:(NSString*)objectName;
+{
+	[[ParameterServer server] stopSharingKeyPath:path ofObject:self named:objectName];
+}
+@end
+
+
 
 
 
