@@ -24,6 +24,7 @@ const extern int ParameterServerPort;
 @interface NSObject (ParameterConvenience)
 -(void)shareKeyPath:(NSString*)path as:(NSString*)objectName;
 -(void)stopSharingKeyPath:(NSString*)path as:(NSString*)objectName;
+-(id)rp_grabNamed:(NSString*)name; // Returns an invocation grabber. Run the getter to watch on it.
 @end
 
 

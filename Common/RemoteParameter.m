@@ -433,6 +433,33 @@ static NSString *UnavailableObject = @"UnavailableObject";
 
 
 
+#pragma mark 
+#pragma mark -
+@interface RPGrabber : NSObject
+{
+	id obj;
+	NSString *name;
+}
+@property (assign) id obj;
+@property (retain) NSString *name;
+@end
+@implementation RPGrabber
+@synthesize obj, name;
+-(void)dealloc;
+{
+	self.obj = self.name = nil;
+	[super dealloc];
+}
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)inSelector {
+	return [obj methodSignatureForSelector:inSelector];
+}
+-(void)forwardInvocation:(NSInvocation*)invo;
+{
+	[[ParameterServer server] shareKeyPath:NSStringFromSelector(invo.selector) ofObject:self.obj named:self.name];
+}
+@end
+
+
 @implementation NSObject (ParameterConvenience)
 -(void)shareKeyPath:(NSString*)path as:(NSString*)objectName;
 {
@@ -442,7 +469,16 @@ static NSString *UnavailableObject = @"UnavailableObject";
 {
 	[[ParameterServer server] stopSharingKeyPath:path ofObject:self named:objectName];
 }
+-(id)rp_grabNamed:(NSString*)name;
+{
+	RPGrabber *grab = [[RPGrabber new] autorelease];
+	grab.obj = self;
+	grab.name = name;
+	return grab;
+}
 @end
+
+
 
 
 
